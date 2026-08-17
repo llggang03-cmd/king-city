@@ -155,4 +155,31 @@ fun GameScreen(
                         .size(76.dp)
                         .clip(CircleShape)
                         .background(NeonPink.copy(alpha = 0.85f))
-                        .clickable { if (!isPaused && !engine.isBusted) engine.
+                        .clickable { if (!isPaused && !engine.isBusted) engine.fire() },
+                    contentAlignment = Alignment.Center
+                ) { Text(if (engine.weapon == WeaponType.PISTOL) "🔫" else "👊", fontSize = 30.sp) }
+            }
+        }
+
+        if (isPaused && !engine.isBusted) {
+            PauseOverlay(
+                onResume = { isPaused = false },
+                onRestart = { engine.reset(); sessionMoneyBanked = 0; isPaused = false },
+                onExit = onExitToLobby
+            )
+        }
+
+        if (engine.isBusted) {
+            BustedOverlay(
+                moneyLost = (engine.money * 0.25f).toInt(),
+                onContinue = {
+                    engine.respawnAfterBusted()
+                    val delta = engine.money - sessionMoneyBanked
+                    sessionMoneyBanked = engine.money
+                    onSaveState(saveState.copy(money = (saveState.money + delta).coerceAtLeast(0)))
+                },
+                onExit = onExitToLobby
+            )
+        }
+    }
+}
